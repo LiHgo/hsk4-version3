@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+<title>HSK4翻转词汇卡</title>
+<style>
+:root{
+--bg:#07122a;
+--panel:#071a2c;
+--card:#ffffff;
+--muted:#9fb0c0;
+--accent:#60a5fa;
+--glass: rgba(255,255,255,0.03);
+--radius:12px;
+--shadow: 0 10px 30px rgba(2,6,23,0.6);
+font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+color-scheme: dark;
+}
+@media (prefers-color-scheme: light){
+:root{
+--bg:#f3f7fb; --panel:#ffffff; --card:#0f1724; --muted:#475569; --accent:#2563eb; --glass: rgba(15,23,42,0.03);
+--shadow: 0 8px 20px rgba(15,23,42,0.08);
+color-scheme: light;
+}
+}
+
+html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#052135);-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1100px;margin:16px auto;padding:12px;display:grid;grid-template-columns:1fr 360px;gap:14px;align-items:start;}
+header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+h1{margin:0;color:var(--card);font-size:18px}
+.sub{color:var(--muted);font-size:13px}
+
+.main{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);min-height:520px}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.search{flex:1;display:flex;gap:8px;align-items:center}
+.search input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--card);outline:none;font-size:16px}
+.btn{padding:12px 16px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),#3b82f6);color:white;cursor:pointer;font-weight:600;box-shadow:0 6px 18px rgba(59,130,246,0.12); font-size:16px}
+.btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--card);box-shadow:none}
+.small{padding:10px 12px;font-size:15px}
+
+.card-area{display:flex;gap:12px;align-items:center;justify-content:center;padding:6px}
+.card{ width:560px; max-width:100%; height:360px; perspective:1600px; display:flex; align-items:center; justify-content:center; cursor:pointer }
+.card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 520ms cubic-bezier(.2,.9,.3,1)}
+.card.is-flipped .card-inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:12px;padding:22px;backface-visibility:hidden;display:flex;flex-direction:column;justify-content:center;align-items:center;box-shadow:0 12px 30px rgba(2,6,23,0.5);background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));color:var(--card)}
+.front .hanzi{font-size:64px;font-weight:700;letter-spacing:2px;text-align:center;line-height:1}
+.front .pinyin{margin-top:10px;color:var(--muted);font-size:20px}
+.back{transform:rotateY(180deg);text-align:left}
+.back .eng{font-size:20px;font-weight:600;color:var(--card)}
+.example{margin-top:12px;color:var(--muted);font-size:15px}
+
+.side{background:var(--panel);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);height:100%;overflow:auto}
+.meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.progress{font-weight:600;color:var(--card)}
+.navs{display:flex;gap:8px;margin-bottom:12px}
+.navs button{flex:1}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:12px;max-height:300px;overflow:auto;padding-right:6px}
+.mini{background:var(--glass);padding:12px;border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mini .mch{font-weight:700;color:var(--card)}
+.mini .mp{font-size:12px;color:var(--muted);margin-top:6px}
+
+.fav-list{margin-top:12px;max-height:220px;overflow:auto;padding-right:6px}
+.fav-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);margin-bottom:8px}
+.muted{color:var(--muted);font-size:13px}
+
+footer{grid-column:1/-1;margin-top:8px;color:var(--muted);font-size:13px;text-align:center}
+
+@media (max-width:980px){
+.wrap{grid-template-columns:1fr;padding:10px;gap:10px}
+.side{order:2;height:auto}
+.card{height:320px}
+.card .front .hanzi{font-size:56px}
+.toolbar{gap:10px}
+}
+@media (max-width:520px){
+body{padding:10px}
+.card{height:300px}
+.card .front .hanzi{font-size:48px}
+.toolbar{flex-direction:column;align-items:stretch;gap:8px}
+.navs{display:flex;flex-direction:row;gap:8px}
+.btn{width:100%;display:block; font-size:16px; padding:12px}
+.grid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+}
+
+.mobile-bottom{
+display:none;
+position:fixed;left:0;right:0;bottom:10px;padding:8px 12px;gap:10px;margin:0 auto;max-width:720px;border-radius:14px;background:linear-gradient(90deg, rgba(2,6,23,0.6), rgba(2,6,23,0.5));box-shadow:0 10px 30px rgba(2,6,23,0.6);
+justify-content:center;align-items:center;z-index:1200;
+}
+.mobile-bottom .btn{padding:12px 16px; font-size:16px}
+@media (max-width:520px){
+.mobile-bottom{display:flex}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div>
+<h1>HSK4翻转词汇卡</h1>
+<div class="sub">在线载入完整 HSK4 词表 · 收藏 / 发音 / 跳转</div>
+</div>
+<div style="display:flex;gap:8px;align-items:center">
+<div id="datasource" class="muted">数据源：准备就绪</div>
+</div>
+</header>
+
+<section class="main" aria-label="主区域">
+<div class="toolbar" role="toolbar">
+<div class="search" style="min-width:220px">
+<input id="search" aria-label="搜索输入" placeholder="搜索中文 / 拼音 / 英文，或输入 #123 跳到第 123 个" />
+<button id="btn-search" class="btn small">搜索</button>
+<button id="btn-clear" class="btn secondary small">清除</button>
+</div>
+
+<div style="display:flex;gap:8px;align-items:center">
+<button id="btn-shuffle" class="btn small">随机</button>
+<button id="btn-grid" class="btn secondary small">网格</button>
+<button id="btn-speak-mode" class="btn secondary small">发音：中文</button>
+</div>
+</div>
+
+<div class="card-area">
+<div class="card" id="card" tabindex="0" title="点击翻转或按空格">
+<div class="card-inner" id="cardInner">
+<div class="face front">
+<div class="hanzi" id="ch">加载中…</div>
+<div class="pinyin" id="pinyin">—</div>
+</div>
+<div class="face back">
+<div class="eng" id="eng">—</div>
+<div class="example" id="example">—</div>
+</div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
+<button id="prev" class="btn secondary small">上一张</button>
+<button id="next" class="btn secondary small">下一张</button>
+<button id="flip" class="btn small">翻转</button>
+
+<div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<button id="favBtn" class="btn small">☆ 收藏</button>
+<div class="muted" style="margin-left:6px">跳转到 #</div>
+<input id="jumpInput" style="width:84px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--card)" placeholder="编号" />
+<button id="jumpBtn" class="btn secondary small">跳转</button>
+</div>
+</div>
+</section>
+
+<aside class="side" aria-label="侧边栏">
+<div class="meta">
+<div>
+<div class="muted">当前词汇</div>
+<div class="progress" id="progress">0 / 0</div>
+</div>
+<div>
+<div id="statusSmall" class="muted">等待加载</div>
+</div>
+</div>
+
+<div class="navs">
+<button id="showAll" class="btn secondary small">全部</button>
+<button id="showFavs" class="btn small">收藏夹</button>
+</div>
+
+<div id="gridContainer" class="grid" aria-live="polite"></div>
+
+<div style="margin-top:12px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div class="muted">收藏夹</div>
+<button id="clearFavs" class="btn secondary small">清空</button>
+</div>
+<div id="favList" class="fav-list"></div>
+</div>
+</aside>
+
+<footer>首次加载将从 GitHub raw 获取词表；若需离线版，请回复“离线版”。收藏保存在本地浏览器。</footer>
+</div>
+
+<div class="mobile-bottom" role="navigation" aria-hidden="false">
+<button id="mb-prev" class="btn secondary small">◀</button>
+<button id="mb-flip" class="btn small">翻转</button>
+<button id="mb-next" class="btn secondary small">▶</button>
+<button id="mb-speak" class="btn secondary small">🔊</button>
+</div>
+
+<script>
+/********** JS 完整逻辑 **********/
+/********** 配置 **********/
+const RAW_URL = "https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/wordlists/inclusive/old/4.json";
+
+const dsEl = document.getElementById('datasource');
+const statusSmall = document.getElementById('statusSmall');
+const chEl = document.getElementById('ch');
+const pyEl = document.getElementById('pinyin');
+const engEl = document.getElementById('eng');
+const exampleEl = document.getElementById('example');
+const progressEl = document.getElementById('progress');
+const gridContainer = document.getElementById('gridContainer');
+const favListEl = document.getElementById('favList');
+
+const searchInput = document.getElementById('search');
+const btnSearch = document.getElementById('btn-search');
+const btnClear = document.getElementById('btn-clear');
+
+const card = document.getElementById('card');
+const cardInner = document.getElementById('cardInner');
+
+let words = [];
+let filtered = [];
+let idx = 0;
+let speakingMode = 'zh';
+const LS_FAV_KEY = 'hsk4_favs_v1';
+let favSet = new Set(JSON.parse(localStorage.getItem(LS_FAV_KEY) || "[]"));
+
+/********** 标准化单条 **********/
+function normalizeEntry(e){try{
+if(!e) return null;
+if(e.simplified){const ch=e.simplified;let pinyin='';let en='';if(e.forms&&e.forms.length){const f=e.forms[0];if(f.transcriptions&&(f.transcriptions.pinyin||f.transcriptions.y)) pinyin=f.transcriptions.pinyin||f.transcriptions.y||'';if(f.meanings&&f.meanings.length) en=Array.isArray(f.meanings)?f.meanings.join('; '):f.meanings;} return {ch,pinyin,en,example:''};}
+if(e.hanzi||e.word||e.ch||e.simplified){const ch=e.hanzi||e.word||e.ch||e.simplified||'';const pinyin=e.pinyin||(e.transcriptions&&e.transcriptions.pinyin)||'';const en=(e.translations&&e.translations[0])||(e.meanings&&e.meanings[0])||e.en||e.meaning||'';const example=(e.examples&&e.examples[0]&&(e.examples[0].zh||e.examples[0].en))||e.example||'';return {ch,pinyin,en,example};}
+if(e.word){return { ch:e.word, pinyin:e.pinyin||'', en:e.en||'', example:e.example||'' };}
+}catch(err){return null;}return null;}
+
+/********** 渲染单张 **********/
+function renderSingle(i){
+if(!filtered||filtered.length===0){chEl.textContent='没有匹配的词条';pyEl.textContent='';engEl.textContent='';exampleEl.textContent='';progressEl.textContent='0 / 0';return;}
+idx=((i%filtered.length)+filtered.length)%filtered.length;
+const w=filtered[idx];
+chEl.textContent=w.ch;pyEl.textContent=w.pinyin||'';engEl.textContent=w.en||'';exampleEl.textContent=w.example||'';progressEl.textContent=`${idx+1} / ${filtered.length}`;
+card.classList.remove('is-flipped');updateFavBtn();}
+
+/********** 网格渲染 **********/
+function renderGrid(showOnlyFavs=false){
+gridContainer.innerHTML='';
+const list=showOnlyFavs?filtered.filter(w=>favSet.has(w.ch)):filtered;
+if(list.length===0){gridContainer.innerHTML=`<div class="muted" style="padding:12px">暂无显示内容</div>`;return;}
+list.forEach(w=>{const d=document.createElement('div');d.className='mini';d.innerHTML=`<div class="mch">${w.ch}</div><div class="mp">${w.pinyin||''}</div>`;d.onclick=()=>{const pos=filtered.findIndex(x=>x.ch===w.ch);if(pos>=0){renderSingle(pos);window.scrollTo({top:0,behavior:'smooth'});}};gridContainer.appendChild(d);});
+}
+
+function updateFavBtn(){
+if(!filtered||filtered.length===0) return;
+const w=filtered[idx];const favBtn=document.getElementById('favBtn');
+if(favSet.has(w.ch)){favBtn.textContent='★ 已收藏';favBtn.classList.add('btn');}
+else{favBtn.textContent='☆ 收藏';favBtn.classList.remove('btn');}
+}
+
+/********** 收藏 **********/
+function toggleFavorite(){if(!filtered||filtered.length===0) return;const w=filtered[idx];if(favSet.has(w.ch)) favSet.delete(w.ch); else favSet.add(w.ch);persistFavs();renderFavList();updateFavBtn();}
+function persistFavs(){localStorage.setItem(LS_FAV_KEY,JSON.stringify(Array.from(favSet)));}
+function renderFavList(){favListEl.innerHTML='';if(favSet.size===0){favListEl.innerHTML=`<div class="muted" style="padding:8px">你还没有收藏任何词。</div>`;return;}Array.from(favSet).map(ch=>words.find(x=>x.ch===ch)).filter(Boolean).forEach(w=>{const div=document.createElement('div');div.className='fav-item';div.innerHTML=`<div style="display:flex;flex-direction:column"><div style="font-weight:700">${w.ch}</div><div class="muted" style="margin-top:4px">${w.pinyin||''} · ${w.en||''}</div></div><div style="display:flex;gap:8px;align-items:center"><button class="btn small" onclick="gotoFav('${w.ch}')">查看</button><button class="btn secondary small" onclick="removeFav('${w.ch}')">移</button></div>`;favListEl.appendChild(div);});}
+function removeFav(ch){favSet.delete(ch);persistFavs();renderFavList();updateFavBtn();}
+function gotoFav(ch){const pos=filtered.findIndex(w=>w.ch===ch);if(pos>=0) renderSingle(pos); else {const posAll=words.findIndex(w=>w.ch===ch);if(posAll>=0){filtered=words.slice();renderSingle(posAll);}}}
+window.removeFav=removeFav;window.gotoFav=gotoFav;
+
+/********** 翻转与发音 **********/
+function flipCard(){card.classList.toggle('is-flipped');}
+function speakCard(){
+if(!filtered||filtered.length===0) return;
+const w=filtered[idx];const utter=new SpeechSynthesisUtterance();utter.lang=(speakingMode==='zh')?'zh-CN':'en-US';utter.text=(speakingMode==='zh')?w.ch:w.en;window.speechSynthesis.speak(utter);}
+function toggleSpeakMode(){speakingMode=(speakingMode==='zh')?'en':'zh';document.getElementById('btn-speak-mode').textContent=`发音：${speakingMode==='zh'?'中文':'英文'}`;}
+
+/********** 搜索、跳转 **********/
+function doSearch(){const kw=searchInput.value.trim();if(!kw){filtered=words.slice();renderSingle(0);return;}if(kw.startsWith('#')){const num=parseInt(kw.slice(1));if(!isNaN(num)&&num>=1&&num<=words.length){renderSingle(num-1);return;}}filtered=words.filter(w=>w.ch.includes(kw)||w.pinyin.includes(kw)||w.en.includes(kw));renderSingle(0);}
+function clearSearch(){searchInput.value='';filtered=words.slice();renderSingle(0);}
+
+/********** 导航 **********/
+function prevCard(){renderSingle(idx-1);}
+function nextCard(){renderSingle(idx+1);}
+function shuffle(){filtered=words.slice().sort(()=>Math.random()-0.5);renderSingle(0);}
+
+/********** 初始化 **********/
+async function init(){
+dsEl.textContent='加载中…';
+try{
+const resp=await fetch(RAW_URL);const data=await resp.json();
+words=data.map(normalizeEntry).filter(Boolean);
+filtered=words.slice();
+renderSingle(0);renderGrid();renderFavList();
+dsEl.textContent=`数据源：HSK4 (${words.length} 条)`;
+}catch(err){dsEl.textContent='加载失败，请检查网络';console.error(err);}}
+init();
+
+/********** 事件绑定 **********/
+card.onclick=flipCard;document.getElementById('flip').onclick=flipCard;
+document.getElementById('prev').onclick=prevCard;document.getElementById('next').onclick=nextCard;
+btnSearch.onclick=doSearch;btnClear.onclick=clearSearch;
+document.getElementById('btn-shuffle').onclick=shuffle;
+document.getElementById('btn-speak-mode').onclick=toggleSpeakMode;
+document.getElementById('favBtn').onclick=toggleFavorite;
+document.getElementById('showAll').onclick=()=>{filtered=words.slice();renderSingle(0);renderGrid();};
+document.getElementById('showFavs').onclick=()=>{filtered=words.filter(w=>favSet.has(w.ch));renderSingle(0);renderGrid(true);};
+document.getElementById('clearFavs').onclick=()=>{favSet.clear();persistFavs();renderFavList();updateFavBtn();};
+document.getElementById('jumpBtn').onclick=()=>{const n=parseInt(document.getElementById('jumpInput').value);if(!isNaN(n)&&n>=1&&n<=filtered.length) renderSingle(n-1);};
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight') nextCard();else if(e.key==='ArrowLeft') prevCard();else if(e.key===' '){flipCard();e.preventDefault();}});
+document.getElementById('mb-prev').onclick=prevCard;
+document.getElementById('mb-next').onclick=nextCard;
+document.getElementById('mb-flip').onclick=flipCard;
+document.getElementById('mb-speak').onclick=speakCard;
+</script>
+</body>
+</html>
